@@ -4,15 +4,30 @@
   "description": "",
   "main": "chart.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "d3": "^6.3.1"
+    "d3": "^6.3.1",
+    "d3-collection": "^1.0.7"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "parcel-bundler": "^1.6.1",
+    "parcel-plugin-static-files-copy": "^2.5.0"
   },
   "browserslist": [
-    "last 1 Chrome version"
-  ]
+    "since 2017-06"
+  ],
+  "staticFiles": {
+    "staticPath": [
+      {
+        "staticPath": "data",
+        "staticOutDir": "data/"
+      }
+    ]
+  }
 }
