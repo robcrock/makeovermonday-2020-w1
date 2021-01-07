@@ -8,17 +8,17 @@ async function drawLineChart() {
 
   let dataset = await d3.csv("./data/data.csv")
 
-  let dataByYear = d3Collection.nest()
-    .key(d => d.year)
-    .entries(dataset)
-
-  console.log(dataByYear);
-
   const yAccessor = (d) => parseInt(d.count)
   const dateParser = d3.timeParse("%m/%d/%y")
   const dateFormatter = d3.timeFormat("%Y-%m-%d")
   const xAccessor = (d) => dateParser(d.date)
   dataset = dataset.sort((a, b) => xAccessor(a) - xAccessor(b))
+
+  let dataByYear = d3Collection.nest()
+    .key(d => d.year)
+    .entries(dataset)
+
+  console.log(dataByYear);
 
   // 2. Create chart dimensions
 
@@ -195,11 +195,20 @@ async function drawLineChart() {
 
   const yAxis = bounds.append("g").attr("class", "y-axis").call(yAxisGenerator)
 
-  const yAxisLabelSuffix = bounds
-    .append("text")
-    .attr("y", 5.5)
-    .text("relative humidity")
-    .attr("class", "y-axis-label y-axis-label-suffix")
+  // const yAxisLabelSuffix = bounds
+  //   .append("text")
+  //   .attr("y", 5.5)
+  //   .text("relative humidity")
+  //   .attr("class", "y-axis-label y-axis-label-suffix")
+
+  const xAxisGenerator = d3.axisBottom()
+    .scale(xScale)
+
+  const xAxis = bounds.append("g")
+    .call(xAxisGenerator)
+      .style("transform", `translateY(${
+        dimensions.boundedHeight
+      }px)`)
 
   bounds
     .append("line")
