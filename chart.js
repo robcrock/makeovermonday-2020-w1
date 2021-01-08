@@ -1,26 +1,28 @@
 // prettier-ignore
 
 import * as d3 from "d3"
-import * as d3Collection from 'd3-collection';
 
 async function drawLineChart() {
-  // 1. Access data
+  // ********************************************************************************
+  // 1. Access the data
+  // ********************************************************************************
 
   let dataset = await d3.csv("./data/data.csv")
 
   const yAccessor = (d) => parseInt(d.count)
-  const dateParser = d3.timeParse("%m/%d/%y")
+  const dateParser = d3.timeParse("%m/%d")
   const dateFormatter = d3.timeFormat("%Y-%m-%d")
-  const xAccessor = (d) => dateParser(d.date)
+  const xAccessor = (d) => { return dateParser((d.date.match(/^\d{1,2}\/\d{1,2}/))[0]); };
   dataset = dataset.sort((a, b) => xAccessor(a) - xAccessor(b))
 
-  let dataByYear = d3Collection.nest()
-    .key(d => d.year)
-    .entries(dataset)
+  // Group the data by year
+  let dataByYear = d3.group(dataset, d => d.year)
+  // Convert the Map to an Array
+  dataByYear = Array.from(dataByYear)
 
-  console.log(dataByYear);
-
+  // ********************************************************************************
   // 2. Create chart dimensions
+  // ********************************************************************************
 
   let dimensions = {
     width: window.innerWidth * 0.9,
@@ -32,12 +34,15 @@ async function drawLineChart() {
       left: 60,
     },
   }
+
   dimensions.boundedWidth =
     dimensions.width - dimensions.margin.left - dimensions.margin.right
   dimensions.boundedHeight =
     dimensions.height - dimensions.margin.top - dimensions.margin.bottom
 
-  // 3. Draw canvas
+  // ********************************************************************************
+  // 3. Draw the canvas
+  // ********************************************************************************
 
   const wrapper = d3
     .select("#wrapper")
@@ -75,7 +80,9 @@ async function drawLineChart() {
       .attr("stop-opacity", 1)
   })
 
+  // ********************************************************************************
   // 4. Create scales
+  // ********************************************************************************
 
   const yScale = d3
     .scaleLinear()
@@ -88,36 +95,38 @@ async function drawLineChart() {
     .domain(d3.extent(dataset, xAccessor))
     .range([0, dimensions.boundedWidth])
 
-  // 5. Draw data
+  // ********************************************************************************
+  // 5. Draw scales
+  // ********************************************************************************
 
   const seasonBoundaries = ["3-20", "6-21", "9-21", "12-21"]
   const seasonNames = ["Spring", "Summer", "Fall", "Winter"]
 
-  let seasonsData = []
-  const startDate = xAccessor(dataset[0])
-  const endDate = xAccessor(dataset[dataset.length - 1])
-  const years = d3.timeYears(d3.timeMonth.offset(startDate, -13), endDate)
-  years.forEach((yearDate) => {
-    const year = +d3.timeFormat("%Y")(yearDate)
-    seasonBoundaries.forEach((boundary, index) => {
-      const seasonStart = dateParser(`${year}-${boundary}`)
-      const seasonEnd = seasonBoundaries[index + 1]
-        ? dateParser(`${year}-${seasonBoundaries[index + 1]}`)
-        : dateParser(`${year + 1}-${seasonBoundaries[0]}`)
-      const boundaryStart = d3.max([startDate, seasonStart])
-      const boundaryEnd = d3.min([endDate, seasonEnd])
-      const days = dataset.filter(
-        (d) => xAccessor(d) > boundaryStart && xAccessor(d) <= boundaryEnd
-      )
-      if (!days.length) return
-      seasonsData.push({
-        start: boundaryStart,
-        end: boundaryEnd,
-        name: seasonNames[index],
-        mean: d3.mean(days, yAccessor),
-      })
-    })
-  })
+  // let seasonsData = []
+  // const startDate = xAccessor(dataset[0])
+  // const endDate = xAccessor(dataset[dataset.length - 1])
+  // const years = d3.timeYears(d3.timeMonth.offset(startDate, -13), endDate)
+  // years.forEach((yearDate) => {
+  //   const year = +d3.timeFormat("%Y")(yearDate)
+  //   seasonBoundaries.forEach((boundary, index) => {
+  //     const seasonStart = dateParser(`${year}-${boundary}`)
+  //     const seasonEnd = seasonBoundaries[index + 1]
+  //       ? dateParser(`${year}-${seasonBoundaries[index + 1]}`)
+  //       : dateParser(`${year + 1}-${seasonBoundaries[0]}`)
+  //     const boundaryStart = d3.max([startDate, seasonStart])
+  //     const boundaryEnd = d3.min([endDate, seasonEnd])
+  //     const days = dataset.filter(
+  //       (d) => xAccessor(d) > boundaryStart && xAccessor(d) <= boundaryEnd
+  //     )
+  //     if (!days.length) return
+  //     seasonsData.push({
+  //       start: boundaryStart,
+  //       end: boundaryEnd,
+  //       name: seasonNames[index],
+  //       mean: d3.mean(days, yAccessor),
+  //     })
+  //   })
+  // })
 
   // const seasonOffset = 10
   // const seasons = bounds
@@ -130,7 +139,9 @@ async function drawLineChart() {
   //   .attr("height", dimensions.boundedHeight - seasonOffset)
   //   .attr("class", (d) => `season ${d.name}`)
 
-  // draw the line
+  // ********************************************************************************
+  // 6. Draw data
+  // ********************************************************************************
 
   // const areaGenerator = d3.area()
   //   .x((d) => xScale(xAccessor(d)))
@@ -152,17 +163,19 @@ async function drawLineChart() {
     .y((d) => yScale(yAccessor(d)))
     .curve(d3.curveBasis)
 
-  const line = bounds.selectAll("lines")
+  const lines = bounds.selectAll("lines")
     .data(dataByYear)
     .enter()
     .append("g")
 
-  line
+  lines
     .append("path")
     .attr("class", "line")
-    .attr("d", dataByYear.map(d => lineGenerator(d.values)))
+    .attr('d', d => lineGenerator(d[1]));
 
-  // 6. Draw peripherals
+  // ********************************************************************************
+  // 7. Draw peripherals
+  // ********************************************************************************
 
   // const seasonMeans = bounds
   //   .selectAll(".season-mean")
