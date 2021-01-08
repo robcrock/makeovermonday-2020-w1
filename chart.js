@@ -26,8 +26,8 @@ async function drawLineChart() {
   // ********************************************************************************
 
   let dimensions = {
-    width: window.innerWidth * 0.9,
-    height: 400,
+    width: 900,
+    height: 540,
     margin: {
       top: 15,
       right: 60,
@@ -58,29 +58,6 @@ async function drawLineChart() {
       `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`
     )
 
-  // BONUS Create chart sections
-
-  const defs = bounds.append("defs")
-
-  const gradientId = "timeline-gradient"
-  const gradient = defs
-    .append("linearGradient")
-    .attr("id", gradientId)
-    .attr("x1", "0%")
-    .attr("x2", "0%")
-    .attr("y1", "0%")
-    .attr("y2", "100%")
-    .attr("spreadMethod", "pad")
-
-  const stops = ["#34495e", "#c8d6e5", "#34495e"]
-  stops.forEach((stop, i) => {
-    gradient
-      .append("stop")
-      .attr("offset", `${(i * 100) / (stops.length - 1)}%`)
-      .attr("stop-color", stop)
-      .attr("stop-opacity", 1)
-  })
-
   // ********************************************************************************
   // 4. Create scales
   // ********************************************************************************
@@ -95,6 +72,7 @@ async function drawLineChart() {
     .scaleTime()
     .domain(d3.extent(dataset, xAccessor))
     .range([0, dimensions.boundedWidth])
+    .nice()
 
   // ********************************************************************************
   // 5. Draw data
@@ -134,7 +112,7 @@ async function drawLineChart() {
   const lineLabels = bounds.selectAll(".line-label")
       .data(dataByYear)
     .enter().append("text")
-      .attr("x", dimensions.boundedWidth + 8)
+      .attr("x", dimensions.boundedWidth - dimensions.margin.right + 20)
       .attr("y", (d) => yScale(yAccessor(d[1][d[1].length - 1])))
       .text(d => d[0])
       .attr("class", "line-label")
@@ -155,7 +133,7 @@ async function drawLineChart() {
       }px)`)
 
   const yAxisLabelSuffix = bounds.append("text")
-    .attr("y", 47)
+    .attr("y", 64)
     .text("weekly trail usage")
     .attr("class", "y-axis-label y-axis-label-suffix")
 }
