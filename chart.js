@@ -123,7 +123,15 @@ async function drawLineChart() {
 
   const xAxisGenerator = d3.axisBottom()
     .scale(xScale)
-    .tickFormat(timeFormat("%b"))
+    .tickFormat(d => {
+      // This fixes our trailing January
+      // documentation here: https://github.com/d3/d3-axis
+      if (timeFormat("%Y")(d) > 1900) {
+        return ""
+      } else {
+        return timeFormat("%b")(d)
+      }
+    })
 
   const xAxis = bounds.append("g")
     .attr("class", "x-axis")
